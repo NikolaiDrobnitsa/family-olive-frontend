@@ -413,7 +413,7 @@ export default {
 <style scoped>
 .hero-section {
   height: 500px;
-  background-image: url('~assets/hero-bg.jpg');
+  background-image: url('../assets/auth-background.jpg');
   background-size: cover;
   background-position: center;
   position: relative;

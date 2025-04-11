@@ -1,3 +1,4 @@
+<!--layouts/MainLayouts.vue-->
 <template>
   <q-layout view="lHh LpR lFf">
     <!-- Хедер -->

@@ -3,7 +3,7 @@
     <q-card-section>
       <div class="text-center q-mb-md">
         <q-avatar size="80px">
-          <img src="~assets/logo.png" alt="Logo">
+          <img src="/src/assets/logo.png" alt="Logo">
         </q-avatar>
       </div>
       <div class="text-h5 text-center q-mb-md">Family Olive Club</div>

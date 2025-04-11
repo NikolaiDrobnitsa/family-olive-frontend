@@ -2,9 +2,9 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
-import { LocalStorage } from 'quasar'
+import store from '../store'
 
-export default route(function ({ store }) {
+export default route(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
@@ -16,35 +16,30 @@ export default route(function ({ store }) {
   })
 
   // Навигационный guard для проверки авторизации
-  Router.beforeEach(async (to, from, next) => {
-    const isAuthenticated = store.getters['auth/isAuthenticated']
+  Router.beforeEach((to, from, next) => {
+    try {
+      // Используем импортированное хранилище, а не то, что приходит в параметрах
+      const isAuthenticated = store.getters && store.getters['auth/isAuthenticated']
 
-    // Для защищенных маршрутов
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-      if (!isAuthenticated) {
-        // Если нет токена, перенаправляем на страницу авторизации
-        next({ name: 'auth' })
-      } else {
-        // Проверяем актуальность сессии
-        try {
-          const authStatus = await store.dispatch('auth/checkAuth')
-          if (authStatus.authenticated) {
-            next()
-          } else {
-            next({ name: 'auth' })
-          }
-        } catch (error) {
-          // В случае ошибки перенаправляем на авторизацию
+      // Для защищенных маршрутов
+      if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!isAuthenticated) {
+          // Если нет токена, перенаправляем на страницу авторизации
           next({ name: 'auth' })
+        } else {
+          next()
         }
       }
-    }
-    // Для гостевых маршрутов (если уже авторизован, перенаправляем на главную)
-    else if (to.matched.some(record => record.meta.guest) && isAuthenticated) {
-      next({ name: 'home' })
-    }
-    // Для всех остальных маршрутов
-    else {
+      // Для гостевых маршрутов (если уже авторизован, перенаправляем на главную)
+      else if (to.matched.some(record => record.meta.guest) && isAuthenticated) {
+        next({ name: 'home' })
+      }
+      // Для всех остальных маршрутов
+      else {
+        next()
+      }
+    } catch (error) {
+      console.error('Error in navigation guard:', error)
       next()
     }
   })

@@ -42,7 +42,7 @@ export default {
   align-items: center;
   justify-content: center;
   background-color: #f5f5f5;
-  background-image: url('~assets/auth-background.jpg');
+  background-image: url('../assets/auth-background.jpg');
   background-size: cover;
   background-position: center;
   position: relative;
