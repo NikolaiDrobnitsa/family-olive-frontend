@@ -29,6 +29,12 @@
           >
             <q-tooltip>Панель управления</q-tooltip>
           </q-btn>
+          <q-btn
+            color="primary"
+            label="Перейти в админ-панель"
+            @click="$router.push('/admin')"
+            class="q-my-md"
+          />
           <q-btn-dropdown flat label="RU">
             <q-list>
               <q-item clickable v-close-popup @click="changeLanguage('en')">

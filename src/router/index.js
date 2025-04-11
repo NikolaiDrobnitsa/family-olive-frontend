@@ -20,18 +20,23 @@ export default route(function (/* { store, ssrContext } */) {
     try {
       const isAuthenticated = store.getters && store.getters['auth/isAuthenticated']
       const isAdmin = store.getters && store.getters['auth/isAdmin']
-
+      console.log('Route check:', {
+        to: to.path,
+        isAuthenticated,
+        isAdmin,
+        requiresAdmin: to.matched.some(record => record.meta.requiresAdmin)
+      });
       // For routes requiring admin access
       if (to.matched.some(record => record.meta.requiresAdmin)) {
         if (!isAuthenticated) {
-          // If not authenticated, redirect to login
-          next({ name: 'auth' })
+          console.log('Redirecting to login: not authenticated');
+          next({ name: 'admin-login' }); // Изменено с 'auth' на 'admin-login'
         } else if (!isAdmin) {
-          // If authenticated but not admin, redirect to home
-          next({ name: 'home' })
+          console.log('Redirecting to home: not admin');
+          next({ name: 'home' });
         } else {
-          // Admin authenticated, proceed
-          next()
+          console.log('Proceeding to admin area');
+          next();
         }
       }
       // For routes requiring just authentication

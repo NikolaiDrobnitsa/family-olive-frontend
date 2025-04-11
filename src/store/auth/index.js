@@ -10,11 +10,16 @@ const state = {
 }
 
 const getters = {
-  isAuthenticated: state => !!state.token,
+  isAuthenticated: state => {
+    console.log('isAuthenticated check:', !!state.token);
+    return !!state.token;
+  },
   currentUser: state => state.user,
-  isAdmin: state => state.user && state.user.is_admin === true
-}
-
+  isAdmin: state => {
+    console.log('isAdmin check:', state.user, state.user && state.user.is_admin === true);
+    return state.user && state.user.is_admin === true;
+  }
+};
 const mutations = {
   SET_TOKEN(state, token) {
     state.token = token
@@ -153,14 +158,21 @@ const actions = {
 
   // Инициализация состояния аутентификации
   init({ commit, dispatch, state }) {
-    const token = state.token
+    const token = state.token;
+    console.log('Auth init:', { hasToken: !!token });
 
     if (token) {
       // Проверяем аутентификацию
-      return dispatch('checkAuth')
+      return dispatch('checkAuth').then(result => {
+        console.log('Auth check result:', result);
+        return result;
+      }).catch(error => {
+        console.error('Auth check error:', error);
+        throw error;
+      });
     }
 
-    return Promise.resolve()
+    return Promise.resolve();
   }
 }
 
