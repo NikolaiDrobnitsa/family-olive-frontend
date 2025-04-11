@@ -21,6 +21,14 @@
 
         <!-- Языки и выход -->
         <div class="q-gutter-sm">
+          <q-btn
+            v-if="isAdmin"
+            flat
+            icon="admin_panel_settings"
+            :to="{ name: 'admin.dashboard' }"
+          >
+            <q-tooltip>Панель управления</q-tooltip>
+          </q-btn>
           <q-btn-dropdown flat label="RU">
             <q-list>
               <q-item clickable v-close-popup @click="changeLanguage('en')">
@@ -122,6 +130,7 @@ export default {
 
     const tab = ref('home');
     const year = computed(() => new Date().getFullYear());
+    const isAdmin = computed(() => store.getters['auth/isAdmin']);
 
     // Проверяем, прошел ли пользователь опрос
     const surveyCompleted = computed(() => store.state.survey.completed);
@@ -162,7 +171,8 @@ export default {
       year,
       surveyCompleted,
       changeLanguage,
-      logout
+      logout,
+      isAdmin
     };
   }
 };

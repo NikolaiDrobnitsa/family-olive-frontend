@@ -11,7 +11,9 @@ const state = {
 
 const getters = {
   isAuthenticated: state => !!state.token,
-  currentUser: state => state.user
+  currentUser: state => state.user,
+  isAdmin: state => state.user && state.user.is_admin // Добавим этот геттер
+
 }
 
 const mutations = {

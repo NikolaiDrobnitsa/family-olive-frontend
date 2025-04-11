@@ -10,10 +10,11 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import LoginForm from 'components/Auth/LoginForm.vue';
-import VerificationForm from 'components/Auth/VerificationForm.vue';
+import { useRouter } from 'vue-router';
+import LoginForm from 'src/components/Auth/LoginForm.vue';
+import VerificationForm from 'src/components/Auth/VerificationForm.vue';
 
 export default {
   name: 'AuthPage',
@@ -25,8 +26,33 @@ export default {
 
   setup() {
     const store = useStore();
+    const router = useRouter();
+
 
     const verificationNeeded = computed(() => store.state.auth.verificationNeeded);
+    const isAdmin = computed(() => store.getters['auth/isAdmin']);
+
+// Проверяем статус авторизации при загрузке
+    onMounted(async () => {
+      const isAuthenticated = store.getters['auth/isAuthenticated'];
+
+      if (isAuthenticated) {
+        try {
+          const authStatus = await store.dispatch('auth/checkAuth');
+          if (authStatus.authenticated) {
+            // Если пользователь уже авторизован и является админом
+            if (authStatus.user.is_admin) {
+              router.push({ name: 'admin.dashboard' });
+            } else {
+              // Обычный пользователь
+              router.push({ name: 'home' });
+            }
+          }
+        } catch (error) {
+          console.error('Ошибка при проверке авторизации:', error);
+        }
+      }
+    });
 
     return {
       verificationNeeded
