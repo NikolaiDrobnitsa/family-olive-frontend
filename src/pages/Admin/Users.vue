@@ -1,227 +1,205 @@
 <template>
   <q-page padding>
-    <div class="row q-mb-lg justify-between items-center">
-      <div class="col-md-6 col-xs-12">
-        <div class="text-h4">Пользователи</div>
-        <div class="text-subtitle1">Управление пользователями системы</div>
-      </div>
-
-      <div class="col-md-6 col-xs-12 text-right">
-        <q-btn
-          color="primary"
-          icon="download"
-          label="Экспорт"
-          @click="exportUsers"
-          :loading="loading"
-        />
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12">
+        <h1 class="text-h4 q-mb-md">Управление пользователями</h1>
+        <p class="text-subtitle1">Просмотр и управление пользователями системы</p>
       </div>
     </div>
 
-    <!-- Фильтры -->
+    <!-- Filter Card -->
     <q-card class="q-mb-md">
       <q-card-section>
         <div class="text-h6">Фильтры</div>
-
-        <div class="row q-col-gutter-md q-mt-md">
+      </q-card-section>
+      <q-card-section>
+        <div class="row q-col-gutter-md">
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-input
+              outlined
               v-model="filters.email"
               label="Email"
-              outlined
               dense
+              clearable
+              @update:model-value="onFilterChange"
             />
           </div>
-
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-input
+              outlined
               v-model="filters.phone"
               label="Телефон"
-              outlined
               dense
+              clearable
+              @update:model-value="onFilterChange"
             />
           </div>
-
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-select
+              outlined
               v-model="filters.is_verified"
-              :options="[
-                { label: 'Все', value: null },
-                { label: 'Верифицированные', value: true },
-                { label: 'Неверифицированные', value: false }
-              ]"
-              label="Статус верификации"
-              outlined
+              :options="verificationOptions"
+              label="Верификация"
               dense
+              clearable
               emit-value
               map-options
+              @update:model-value="onFilterChange"
             />
           </div>
-
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-select
-              v-model="filters.interest_type"
-              :options="[
-                { label: 'Все', value: null },
-                { label: 'Плантация 20 га', value: 'Плантация 20 га' },
-                { label: '5 га + коттедж', value: '5 га + коттедж' }
-              ]"
-              label="Тип интереса"
               outlined
+              v-model="filters.interest_type"
+              :options="interestTypeOptions"
+              label="Тип интереса"
               dense
+              clearable
               emit-value
               map-options
+              @update:model-value="onFilterChange"
             />
           </div>
         </div>
-
-        <div class="row q-col-gutter-md q-mt-md">
+        <div class="row q-col-gutter-md q-mt-sm">
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-input
+              outlined
               v-model="filters.date_from"
-              label="Дата регистрации от"
-              outlined
+              label="Дата от"
               dense
+              clearable
               type="date"
+              @update:model-value="onFilterChange"
             />
           </div>
-
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-input
+              outlined
               v-model="filters.date_to"
-              label="Дата регистрации до"
-              outlined
+              label="Дата до"
               dense
+              clearable
               type="date"
+              @update:model-value="onFilterChange"
             />
           </div>
-
           <div class="col-md-3 col-sm-6 col-xs-12">
             <q-input
+              outlined
               v-model="filters.utm_source"
               label="UTM Source"
-              outlined
               dense
+              clearable
+              @update:model-value="onFilterChange"
             />
           </div>
-
-          <div class="col-md-3 col-sm-6 col-xs-12 text-right">
-            <q-btn
-              color="primary"
-              label="Применить"
-              class="q-mt-md"
-              @click="applyFilters"
-              :loading="loading"
-            />
-            <q-btn
-              color="grey"
-              label="Сбросить"
-              class="q-mt-md q-ml-sm"
-              @click="resetFilters"
-              :loading="loading"
-            />
+          <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="row justify-end q-gutter-sm">
+              <q-btn
+                color="primary"
+                icon="search"
+                label="Поиск"
+                @click="loadUsers"
+              />
+              <q-btn
+                outline
+                color="grey"
+                icon="clear_all"
+                label="Сбросить"
+                @click="resetFilters"
+              />
+              <q-btn
+                color="green"
+                icon="file_download"
+                label="Экспорт"
+                @click="exportUsers"
+              />
+            </div>
           </div>
         </div>
       </q-card-section>
     </q-card>
 
-    <!-- Таблица пользователей -->
+    <!-- Users Table -->
     <q-card>
       <q-card-section>
-        <div v-if="loading" class="text-center q-pa-lg">
-          <q-spinner color="primary" size="3em" />
-          <div class="q-mt-sm">Загрузка пользователей...</div>
-        </div>
-
-        <div v-else-if="users.length === 0" class="text-center q-pa-lg">
-          <q-icon name="person_off" size="3em" color="grey-5" />
-          <div class="q-mt-sm text-grey">Пользователи не найдены</div>
-        </div>
-
+        <div class="text-h6">Список пользователей</div>
+      </q-card-section>
+      <q-card-section>
         <q-table
-          v-else
           :rows="users"
           :columns="columns"
           row-key="id"
-          :pagination="{
-            rowsPerPage: pagination.perPage,
-            page: pagination.page,
-            rowsNumber: pagination.total
-          }"
+          :loading="loading"
+          :pagination.sync="pagination"
+          :rows-per-page-options="[10, 20, 50, 0]"
           @request="onRequest"
           binary-state-sort
         >
-          <!-- Верификация -->
+          <!-- Custom column slots -->
           <template v-slot:body-cell-is_verified="props">
             <q-td :props="props">
-              <q-chip :color="props.row.is_verified ? 'positive' : 'negative'" text-color="white" dense>
+              <q-badge
+                :color="props.row.is_verified ? 'positive' : 'negative'"
+              >
                 {{ props.row.is_verified ? 'Да' : 'Нет' }}
-              </q-chip>
+              </q-badge>
             </q-td>
           </template>
 
-          <!-- Интерес -->
-          <template v-slot:body-cell-interest_type="props">
-            <q-td :props="props">
-              <q-chip
-                v-if="props.row.interest_type"
-                :color="props.row.interest_type === 'Плантация 20 га' ? 'blue' : 'orange'"
-                text-color="white"
-                dense
-              >
-                {{ props.row.interest_type }}
-              </q-chip>
-              <span v-else>-</span>
-            </q-td>
-          </template>
-
-          <!-- Дата -->
-          <template v-slot:body-cell-created_at="props">
-            <q-td :props="props">
-              {{ formatDate(props.row.created_at) }}
-            </q-td>
-          </template>
-
-          <!-- Действия -->
           <template v-slot:body-cell-actions="props">
-            <q-td :props="props" class="q-gutter-xs">
-              <q-btn
-                flat
-                round
-                dense
-                color="info"
-                icon="visibility"
-                @click="viewUser(props.row)"
-              >
-                <q-tooltip>Просмотр</q-tooltip>
-              </q-btn>
-
-              <q-btn
-                flat
-                round
-                dense
-                color="negative"
-                icon="delete"
-                @click="confirmDelete(props.row)"
-              >
-                <q-tooltip>Удалить</q-tooltip>
-              </q-btn>
+            <q-td :props="props">
+              <div class="q-gutter-xs">
+                <q-btn
+                  size="sm"
+                  flat
+                  dense
+                  color="info"
+                  icon="visibility"
+                  @click="viewUser(props.row)"
+                >
+                  <q-tooltip>Просмотр</q-tooltip>
+                </q-btn>
+                <q-btn
+                  size="sm"
+                  flat
+                  dense
+                  color="negative"
+                  icon="delete"
+                  @click="confirmDelete(props.row)"
+                >
+                  <q-tooltip>Удалить</q-tooltip>
+                </q-btn>
+              </div>
             </q-td>
+          </template>
+
+          <!-- Empty results slot -->
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-my-lg">
+              <q-icon name="sentiment_dissatisfied" size="2em" color="grey-6" />
+              <span class="text-grey-6 q-ml-sm">Нет данных для отображения</span>
+            </div>
           </template>
         </q-table>
       </q-card-section>
     </q-card>
 
-    <!-- Диалог подтверждения удаления -->
-    <q-dialog v-model="deleteDialog" persistent>
+    <!-- Delete Confirmation Dialog -->
+    <q-dialog v-model="deleteDialog.show" persistent>
       <q-card>
         <q-card-section class="row items-center">
-          <q-avatar icon="warning" color="negative" text-color="white" />
+          <q-avatar icon="delete" color="negative" text-color="white" />
           <span class="q-ml-sm">Вы действительно хотите удалить пользователя?</span>
         </q-card-section>
-
+        <q-card-section>
+          <p>Email: {{ deleteDialog.user ? deleteDialog.user.email : '' }}</p>
+          <p class="text-negative">Это действие невозможно отменить.</p>
+        </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Отмена" color="primary" v-close-popup />
-          <q-btn flat label="Удалить" color="negative" @click="deleteUser" :loading="loading" v-close-popup />
+          <q-btn flat label="Удалить" color="negative" @click="deleteUser" :loading="deleteDialog.loading" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -229,25 +207,102 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, reactive } from 'vue';
-import { useStore } from 'vuex';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { date } from 'quasar';
+import { api } from 'src/boot/axios';
 
 export default {
   name: 'AdminUsers',
 
   setup() {
-    const store = useStore();
     const router = useRouter();
     const $q = useQuasar();
 
-    // Состояние компонента
-    const loading = computed(() => store.getters['admin/isLoading']);
-    const users = computed(() => store.getters['admin/usersList']);
-    const pagination = computed(() => store.getters['admin/usersPagination']);
+    // Table data
+    const users = ref([]);
+    const loading = ref(false);
+    const pagination = ref({
+      sortBy: 'created_at',
+      descending: true,
+      page: 1,
+      rowsPerPage: 20,
+      rowsNumber: 0
+    });
 
+    // Table columns definition
+    const columns = [
+      {
+        name: 'id',
+        label: 'ID',
+        field: 'id',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'name',
+        label: 'Имя',
+        field: 'name',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        field: 'email',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'phone',
+        label: 'Телефон',
+        field: 'phone',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'is_verified',
+        label: 'Верификация',
+        field: 'is_verified',
+        sortable: true,
+        align: 'center'
+      },
+      {
+        name: 'interest_type',
+        label: 'Тип интереса',
+        field: 'interest_type',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'created_at',
+        label: 'Дата регистрации',
+        field: 'created_at',
+        sortable: true,
+        align: 'left',
+        format: val => new Date(val).toLocaleString()
+      },
+      {
+        name: 'actions',
+        label: 'Действия',
+        field: 'actions',
+        align: 'center',
+        sortable: false
+      }
+    ];
+
+    // Filter options
+    const verificationOptions = [
+      { label: 'Верифицированные', value: 1 },
+      { label: 'Не верифицированные', value: 0 }
+    ];
+
+    const interestTypeOptions = [
+      { label: 'Плантация 20 га', value: 'Плантация 20 га' },
+      { label: '5 га + коттедж', value: '5 га + коттедж' }
+    ];
+
+    // Filter state
     const filters = reactive({
       email: '',
       phone: '',
@@ -258,128 +313,161 @@ export default {
       utm_source: ''
     });
 
-    const columns = [
-      { name: 'id', label: 'ID', field: 'id', sortable: true, align: 'left' },
-      { name: 'name', label: 'Имя', field: 'name', sortable: true, align: 'left' },
-      { name: 'email', label: 'Email', field: 'email', sortable: true, align: 'left' },
-      { name: 'phone', label: 'Телефон', field: 'phone', sortable: true, align: 'left' },
-      { name: 'is_verified', label: 'Верифицирован', field: 'is_verified', sortable: true, align: 'center' },
-      { name: 'interest_type', label: 'Интерес', field: 'interest_type', sortable: true, align: 'center' },
-      { name: 'created_at', label: 'Дата регистрации', field: 'created_at', sortable: true, align: 'center' },
-      { name: 'actions', label: 'Действия', field: 'actions', align: 'center' }
-    ];
-
-    const deleteDialog = ref(false);
-    const userToDelete = ref(null);
-
-    // Загрузка пользователей при монтировании компонента
-    onMounted(async () => {
-      try {
-        await store.dispatch('admin/fetchUsers');
-      } catch (error) {
-        showError('Ошибка при загрузке пользователей');
-      }
+    // Delete dialog state
+    const deleteDialog = reactive({
+      show: false,
+      user: null,
+      loading: false
     });
 
-    // Обработчики событий
-    const applyFilters = async () => {
+    // Load users data with pagination and filters
+    const loadUsers = async (props = {}) => {
       try {
-        await store.dispatch('admin/fetchUsers', { filters });
+        loading.value = true;
+
+        // Prepare request params
+        const params = {
+          page: pagination.value.page,
+          per_page: pagination.value.rowsPerPage,
+          sortBy: pagination.value.sortBy,
+          descending: pagination.value.descending ? 1 : 0,
+          ...filters
+        };
+
+        // Fetch data from API
+        const response = await api.get('/api/admin/users', { params });
+
+        // Update table data
+        users.value = response.data.data;
+        pagination.value.rowsNumber = response.data.total;
       } catch (error) {
-        showError('Ошибка при применении фильтров');
+        console.error('Error loading users:', error);
+        $q.notify({
+          color: 'negative',
+          message: 'Ошибка при загрузке данных пользователей',
+          icon: 'error'
+        });
+      } finally {
+        loading.value = false;
       }
     };
 
+    // Handle table pagination request
+    const onRequest = props => {
+      pagination.value.page = props.pagination.page;
+      pagination.value.rowsPerPage = props.pagination.rowsPerPage;
+      pagination.value.sortBy = props.pagination.sortBy;
+      pagination.value.descending = props.pagination.descending;
+
+      loadUsers();
+    };
+
+    // Handle filter changes
+    const onFilterChange = () => {
+      pagination.value.page = 1;
+    };
+
+    // Reset filters
     const resetFilters = () => {
       Object.keys(filters).forEach(key => {
-        filters[key] = key === 'is_verified' || key === 'interest_type' ? null : '';
+        filters[key] = null;
       });
-      applyFilters();
+      pagination.value.page = 1;
+      loadUsers();
     };
 
-    const onRequest = async (props) => {
-      const { page, rowsPerPage } = props.pagination;
-
+    // Export users
+    const exportUsers = async () => {
       try {
-        await store.dispatch('admin/fetchUsers', {
-          page,
-          filters
+        // Prepare export URL with all active filters
+        let exportUrl = '/api/admin/users/export?';
+
+        // Add all non-empty filters to the URL
+        Object.keys(filters).forEach(key => {
+          if (filters[key] !== null && filters[key] !== '') {
+            exportUrl += `${key}=${encodeURIComponent(filters[key])}&`;
+          }
         });
+
+        // Open export URL in new window/tab
+        window.open(exportUrl, '_blank');
       } catch (error) {
-        showError('Ошибка при загрузке пользователей');
+        console.error('Error exporting users:', error);
+        $q.notify({
+          color: 'negative',
+          message: 'Ошибка при экспорте данных пользователей',
+          icon: 'error'
+        });
       }
     };
 
-    const viewUser = (user) => {
-      router.push({ name: 'admin.users.show', params: { id: user.id } });
+    // View user details
+    const viewUser = user => {
+      router.push({ name: 'admin-user-details', params: { id: user.id } });
     };
 
-    const confirmDelete = (user) => {
-      userToDelete.value = user;
-      deleteDialog.value = true;
+    // Show delete confirmation
+    const confirmDelete = user => {
+      deleteDialog.user = user;
+      deleteDialog.show = true;
     };
 
+    // Delete user
     const deleteUser = async () => {
-      if (!userToDelete.value) return;
+      if (!deleteDialog.user) return;
 
       try {
-        await store.dispatch('admin/deleteUser', userToDelete.value.id);
-        await store.dispatch('admin/fetchUsers', { filters });
+        deleteDialog.loading = true;
 
+        // Call API to delete user
+        await api.delete(`/api/admin/users/${deleteDialog.user.id}`);
+
+        // Close dialog
+        deleteDialog.show = false;
+
+        // Show success notification
         $q.notify({
           color: 'positive',
-          message: 'Пользователь успешно удален'
+          message: 'Пользователь успешно удален',
+          icon: 'check_circle'
         });
+
+        // Reload users list
+        loadUsers();
       } catch (error) {
-        showError('Ошибка при удалении пользователя');
+        console.error('Error deleting user:', error);
+        $q.notify({
+          color: 'negative',
+          message: 'Ошибка при удалении пользователя',
+          icon: 'error'
+        });
+      } finally {
+        deleteDialog.loading = false;
       }
     };
 
-    const exportUsers = () => {
-      // Создаем временную ссылку для скачивания
-      const exportUrl = `${process.env.API_URL}/api/admin/users/export?${new URLSearchParams(filters).toString()}`;
-
-      // Создаем ссылку и эмулируем клик
-      const link = document.createElement('a');
-      link.href = exportUrl;
-      link.setAttribute('download', 'users.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      $q.notify({
-        color: 'positive',
-        message: 'Экспорт пользователей начат'
-      });
-    };
-
-    // Вспомогательные функции
-    const formatDate = (dateString) => {
-      return date.formatDate(dateString, 'DD.MM.YYYY HH:mm');
-    };
-
-    const showError = (message) => {
-      $q.notify({
-        color: 'negative',
-        message
-      });
-    };
+    // Load data on component mount
+    onMounted(() => {
+      loadUsers();
+    });
 
     return {
       users,
+      columns,
       loading,
       pagination,
-      columns,
       filters,
+      verificationOptions,
+      interestTypeOptions,
       deleteDialog,
-      applyFilters,
-      resetFilters,
+      loadUsers,
       onRequest,
+      onFilterChange,
+      resetFilters,
+      exportUsers,
       viewUser,
       confirmDelete,
-      deleteUser,
-      exportUsers,
-      formatDate
+      deleteUser
     };
   }
 };

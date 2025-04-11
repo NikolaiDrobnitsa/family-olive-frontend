@@ -18,7 +18,7 @@ const adminRoutes = [
       {
         path: 'users/:id',
         name: 'admin-user-details',
-        component: () => import('src/pages/admin/UserDetails.vue'),
+        component: () => import('src/pages/admin/UserDetail.vue'),
         props: true
       },
       {

@@ -12,8 +12,7 @@ const state = {
 const getters = {
   isAuthenticated: state => !!state.token,
   currentUser: state => state.user,
-  isAdmin: state => state.user && state.user.is_admin // Добавим этот геттер
-
+  isAdmin: state => state.user && state.user.is_admin === true
 }
 
 const mutations = {
@@ -53,6 +52,24 @@ const actions = {
         })
         .catch(error => {
           console.error('Login error:', error)
+          reject(error)
+        })
+    })
+  },
+
+  // Admin login
+  adminLogin({ commit }, credentials) {
+    return new Promise((resolve, reject) => {
+      api.post('/api/admin/login', credentials)
+        .then(response => {
+          if (response.data.success) {
+            commit('SET_TOKEN', response.data.token)
+            commit('SET_USER', response.data.user)
+          }
+          resolve(response.data)
+        })
+        .catch(error => {
+          console.error('Admin login error:', error)
           reject(error)
         })
     })

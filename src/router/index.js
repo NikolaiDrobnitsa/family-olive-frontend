@@ -15,61 +15,47 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  // Навигационный guard для проверки авторизации
-  Router.beforeEach(async (to, from, next) => {
-    const isAuthenticated = store.getters['auth/isAuthenticated'];
-    const isAdmin = store.getters['auth/isAdmin']; // Добавим этот геттер в store
+  // Navigation guard for authentication and admin access
+  Router.beforeEach((to, from, next) => {
+    try {
+      const isAuthenticated = store.getters && store.getters['auth/isAuthenticated']
+      const isAdmin = store.getters && store.getters['auth/isAdmin']
 
-    // Для защищенных маршрутов админ-панели
-    if (to.matched.some(record => record.meta.requiresAdmin)) {
-      if (!isAuthenticated) {
-        return next({ name: 'auth' });
-      }
-
-      try {
-        const authStatus = await store.dispatch('auth/checkAuth');
-        if (authStatus.authenticated && authStatus.user.is_admin) {
-          next();
+      // For routes requiring admin access
+      if (to.matched.some(record => record.meta.requiresAdmin)) {
+        if (!isAuthenticated) {
+          // If not authenticated, redirect to login
+          next({ name: 'auth' })
+        } else if (!isAdmin) {
+          // If authenticated but not admin, redirect to home
+          next({ name: 'home' })
         } else {
-          // Если пользователь не админ, перенаправляем на главную
-          next({ name: 'home' });
-        }
-      } catch (error) {
-        next({ name: 'auth' });
-      }
-    }
-    // Для обычных защищенных маршрутов
-    else if (to.matched.some(record => record.meta.requiresAuth)) {
-      if (!isAuthenticated) {
-        next({ name: 'auth' });
-      } else {
-        try {
-          const authStatus = await store.dispatch('auth/checkAuth');
-          if (authStatus.authenticated) {
-            next();
-          } else {
-            next({ name: 'auth' });
-          }
-        } catch (error) {
-          next({ name: 'auth' });
+          // Admin authenticated, proceed
+          next()
         }
       }
-    }
-    // Для гостевых маршрутов
-    else if (to.matched.some(record => record.meta.guest) && isAuthenticated) {
-      // Если пользователь авторизован и является админом, перенаправляем в админку
-      if (isAdmin) {
-        next({ name: 'admin.dashboard' });
-      } else {
-        // Обычных пользователей - на главную
-        next({ name: 'home' });
+      // For routes requiring just authentication
+      else if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!isAuthenticated) {
+          // If not authenticated, redirect to login
+          next({ name: 'auth' })
+        } else {
+          next()
+        }
       }
+      // For guest routes (if already authenticated, redirect to home)
+      else if (to.matched.some(record => record.meta.guest) && isAuthenticated) {
+        next({ name: 'home' })
+      }
+      // For all other routes
+      else {
+        next()
+      }
+    } catch (error) {
+      console.error('Error in navigation guard:', error)
+      next()
     }
-    // Для всех остальных маршрутов
-    else {
-      next();
-    }
-  });
+  })
 
   return Router
 })

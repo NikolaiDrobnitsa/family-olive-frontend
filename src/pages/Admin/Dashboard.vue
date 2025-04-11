@@ -1,120 +1,149 @@
-<!-- src/pages/admin/Dashboard.vue -->
 <template>
   <q-page padding>
-    <div class="row q-mb-lg">
+    <div class="row q-col-gutter-md q-mb-lg">
       <div class="col-12">
-        <div class="text-h4">Дашборд</div>
-        <div class="text-subtitle1">Общая статистика проекта</div>
+        <h1 class="text-h4 q-mb-md">Административная панель</h1>
+        <p class="text-subtitle1">Добро пожаловать в административную панель Family Olive Club</p>
       </div>
     </div>
 
-    <div class="row q-col-gutter-md q-mb-xl">
-      <!-- Карточки со статистикой -->
+    <!-- Dashboard Stats Cards -->
+    <div class="row q-col-gutter-md q-mb-lg">
+      <!-- Total Users Card -->
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="dashboard-card">
-          <q-card-section>
-            <div class="text-h6">Всего пользователей</div>
-            <div class="text-h3 q-mt-sm">{{ stats.totalUsers }}</div>
+        <q-card>
+          <q-card-section class="bg-primary text-white">
+            <div class="text-h6">Пользователи</div>
           </q-card-section>
+          <q-card-section class="text-center">
+            <div v-if="loading">
+              <q-spinner color="primary" size="3em" />
+            </div>
+            <div v-else class="text-h3">{{ dashboardStats.totalUsers || 0 }}</div>
+            <div class="text-subtitle2">Всего пользователей</div>
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn flat color="primary" :to="{ name: 'admin-users' }">
+              Управление пользователями
+            </q-btn>
+          </q-card-actions>
         </q-card>
       </div>
 
+      <!-- Verified Users Card -->
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="dashboard-card">
-          <q-card-section>
-            <div class="text-h6">Верифицированных</div>
-            <div class="text-h3 q-mt-sm">{{ stats.verifiedUsers }}</div>
+        <q-card>
+          <q-card-section class="bg-positive text-white">
+            <div class="text-h6">Верифицированные</div>
           </q-card-section>
+          <q-card-section class="text-center">
+            <div v-if="loading">
+              <q-spinner color="positive" size="3em" />
+            </div>
+            <div v-else class="text-h3">{{ dashboardStats.verifiedUsers || 0 }}</div>
+            <div class="text-subtitle2">Верифицированных пользователей</div>
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn flat color="positive" :to="{ name: 'admin-users', query: { is_verified: 1 } }">
+              Показать верифицированных
+            </q-btn>
+          </q-card-actions>
         </q-card>
       </div>
 
+      <!-- Events Card -->
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="dashboard-card">
-          <q-card-section>
-            <div class="text-h6">Событий</div>
-            <div class="text-h3 q-mt-sm">{{ stats.totalEvents }}</div>
+        <q-card>
+          <q-card-section class="bg-warning text-white">
+            <div class="text-h6">События</div>
           </q-card-section>
+          <q-card-section class="text-center">
+            <div v-if="loading">
+              <q-spinner color="warning" size="3em" />
+            </div>
+            <div v-else class="text-h3">{{ dashboardStats.totalEvents || 0 }}</div>
+            <div class="text-subtitle2">Всего событий</div>
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn flat color="warning" :to="{ name: 'admin-events' }">
+              Управление событиями
+            </q-btn>
+          </q-card-actions>
         </q-card>
       </div>
 
+      <!-- Quick Actions Card -->
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="dashboard-card">
+        <q-card>
+          <q-card-section class="bg-info text-white">
+            <div class="text-h6">Быстрые действия</div>
+          </q-card-section>
           <q-card-section>
-            <div class="text-h6">Прошли опрос</div>
-            <div class="text-h3 q-mt-sm">{{ stats.surveyCompleted }}</div>
+            <q-list dense>
+              <q-item clickable v-ripple :to="{ name: 'admin-event-create' }">
+                <q-item-section avatar>
+                  <q-icon name="add_circle" color="positive" />
+                </q-item-section>
+                <q-item-section>Добавить событие</q-item-section>
+              </q-item>
+              <q-item clickable v-ripple :to="{ name: 'admin-survey-create' }">
+                <q-item-section avatar>
+                  <q-icon name="add_circle" color="positive" />
+                </q-item-section>
+                <q-item-section>Добавить вопрос</q-item-section>
+              </q-item>
+              <q-item clickable v-ripple :to="{ name: 'admin-settings' }">
+                <q-item-section avatar>
+                  <q-icon name="settings" color="grey" />
+                </q-item-section>
+                <q-item-section>Настройки системы</q-item-section>
+              </q-item>
+            </q-list>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <div class="row q-col-gutter-md">
-      <!-- График регистраций -->
-      <div class="col-md-8 col-xs-12">
+    <!-- Recent Users Chart -->
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-md-8 col-sm-12">
         <q-card>
           <q-card-section>
-            <div class="text-h6">Регистрации за последние 7 дней</div>
+            <div class="text-h6">Регистрации пользователей за последние 7 дней</div>
           </q-card-section>
-
-          <q-card-section>
-            <div v-if="loading" class="text-center q-pa-md">
-              <q-spinner color="primary" size="3em" />
-              <div class="q-mt-sm">Загрузка данных...</div>
-            </div>
-
-            <div v-else-if="usersByDate.length === 0" class="text-center q-pa-lg">
-              <q-icon name="bar_chart" size="3em" color="grey-5" />
-              <div class="q-mt-sm text-grey">Нет данных для отображения</div>
-            </div>
-
-            <div v-else>
-              <div class="chart-container" style="height: 300px;">
-                <q-bar
-                  :data="chartData"
-                  :labels="chartLabels"
-                  color="primary"
-                />
+          <q-card-section v-if="loading" class="text-center">
+            <q-spinner color="primary" size="3em" />
+          </q-card-section>
+          <q-card-section v-else>
+            <div style="height: 300px">
+              <bar-chart v-if="chartData.labels.length > 0" :data="chartData" />
+              <div v-else class="text-center text-grey q-pt-lg">
+                <q-icon name="bar_chart" size="4em" />
+                <div>Нет данных для отображения</div>
               </div>
             </div>
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Быстрые действия -->
-      <div class="col-md-4 col-xs-12">
+      <!-- Recent Activity -->
+      <div class="col-md-4 col-sm-12">
         <q-card>
           <q-card-section>
-            <div class="text-h6">Быстрые действия</div>
+            <div class="text-h6">Последние активности</div>
           </q-card-section>
-
-          <q-list>
-            <q-item clickable v-ripple :to="{ name: 'admin.events.create' }">
-              <q-item-section avatar>
-                <q-icon name="add_circle" color="positive" />
-              </q-item-section>
-              <q-item-section>Создать событие</q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple :to="{ name: 'admin.survey.create' }">
-              <q-item-section avatar>
-                <q-icon name="add_circle" color="positive" />
-              </q-item-section>
-              <q-item-section>Создать вопрос опросника</q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple :to="{ name: 'admin.users' }">
-              <q-item-section avatar>
-                <q-icon name="download" color="info" />
-              </q-item-section>
-              <q-item-section>Экспорт пользователей</q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple :to="{ name: 'admin.settings' }">
-              <q-item-section avatar>
-                <q-icon name="settings" color="warning" />
-              </q-item-section>
-              <q-item-section>Настройки сайта</q-item-section>
-            </q-item>
-          </q-list>
+          <q-card-section>
+            <q-timeline color="secondary">
+              <q-timeline-entry v-for="(activity, index) in recentActivity" :key="index"
+                                :title="activity.title"
+                                :subtitle="activity.subtitle"
+                                :icon="activity.icon"
+                                :color="activity.color"
+              >
+                {{ activity.content }}
+              </q-timeline-entry>
+            </q-timeline>
+          </q-card-section>
         </q-card>
       </div>
     </div>
@@ -122,124 +151,122 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
-import { useQuasar } from 'quasar';
+import { ref, onMounted, computed } from 'vue';
+import { api } from 'src/boot/axios';
 import { date } from 'quasar';
 
-export default {
-  name: 'AdminDashboard',
-
-  setup() {
-    const store = useStore();
-    const $q = useQuasar();
-
-    // Получаем статистику из хранилища
-    const stats = computed(() => store.getters['admin/dashboardStats']);
-    const loading = computed(() => store.getters['admin/isLoading']);
-    const usersByDate = computed(() => stats.value.usersByDate || []);
-
-    // Подготавливаем данные для графика
-    const chartLabels = computed(() => {
-      return usersByDate.value.map(item => date.formatDate(item.date, 'DD.MM'));
-    });
-
-    const chartData = computed(() => {
-      return usersByDate.value.map(item => item.count);
-    });
-
-    // Загружаем данные при монтировании компонента
-    onMounted(async () => {
-      try {
-        await store.dispatch('admin/fetchDashboardStats');
-      } catch (error) {
-        $q.notify({
-          color: 'negative',
-          message: 'Ошибка при загрузке данных дашборда'
-        });
-      }
-    });
-
-    return {
-      stats,
-      loading,
-      usersByDate,
-      chartLabels,
-      chartData
-    };
+// Example chart component (you would need to implement this)
+const BarChart = {
+  props: ['data'],
+  template: `
+    <canvas ref="chartCanvas"></canvas>
+  `,
+  watch: {
+    data: {
+      handler() {
+        this.renderChart();
+      },
+      deep: true
+    }
   },
-
-  // Компонент графика (имитация)
-  components: {
-    'q-bar': {
-      props: ['data', 'labels', 'color'],
-      template: `
-        <div class="chart-placeholder">
-          <div v-for="(value, index) in data" :key="index" class="chart-bar" :style="{
-            height: (value / Math.max(...data)) * 100 + '%',
-            backgroundColor: color === 'primary' ? '#1976D2' : '#E0E0E0'
-          }">
-            <span class="chart-value">{{ value }}</span>
-          </div>
-        </div>
-        <div class="chart-labels">
-          <div v-for="(label, index) in labels" :key="index" class="chart-label">
-            {{ label }}
-          </div>
-        </div>
-      `,
+  mounted() {
+    this.renderChart();
+  },
+  methods: {
+    renderChart() {
+      // This is a placeholder for actual chart rendering
+      // You would use a library like Chart.js or integrate with Quasar's charts
+      console.log('Chart data:', this.data);
+      // Actual implementation would go here
     }
   }
 };
+
+export default {
+  name: 'AdminDashboard',
+  components: {
+    BarChart
+  },
+  setup() {
+    const loading = ref(true);
+    const dashboardStats = ref({
+      totalUsers: 0,
+      verifiedUsers: 0,
+      totalEvents: 0,
+      usersByDate: []
+    });
+
+    const chartData = computed(() => {
+      const labels = [];
+      const data = [];
+
+      if (dashboardStats.value && dashboardStats.value.usersByDate) {
+        dashboardStats.value.usersByDate.forEach(item => {
+          labels.unshift(date.formatDate(item.date, 'DD.MM'));
+          data.unshift(item.count);
+        });
+      }
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: 'Новые пользователи',
+            backgroundColor: '#1976D2',
+            data
+          }
+        ]
+      };
+    });
+
+    // Sample recent activity data
+    const recentActivity = ref([
+      {
+        title: 'Регистрация пользователя',
+        subtitle: 'Сегодня в 10:45',
+        icon: 'person_add',
+        color: 'primary',
+        content: 'Новый пользователь зарегистрировался в системе'
+      },
+      {
+        title: 'Добавлено событие',
+        subtitle: 'Вчера в 15:30',
+        icon: 'event',
+        color: 'warning',
+        content: 'Администратор добавил новое событие'
+      },
+      {
+        title: 'Обновление системы',
+        subtitle: '15.04.2025 в 12:00',
+        icon: 'system_update',
+        color: 'info',
+        content: 'Система была обновлена до последней версии'
+      }
+    ]);
+
+    // Load dashboard data
+    const loadDashboardData = async () => {
+      try {
+        loading.value = true;
+        const response = await api.get('/api/admin/dashboard');
+        dashboardStats.value = response.data;
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    onMounted(() => {
+      loadDashboardData();
+    });
+
+    return {
+      loading,
+      dashboardStats,
+      chartData,
+      recentActivity
+    };
+  }
+};
 </script>
-
-<style scoped>
-.dashboard-card {
-  height: 100%;
-}
-
-.chart-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-placeholder {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  height: 85%;
-  width: 100%;
-}
-
-.chart-bar {
-  width: 40px;
-  position: relative;
-  transition: height 0.5s;
-  border-radius: 4px 4px 0 0;
-  min-height: 1px;
-}
-
-.chart-value {
-  position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-}
-
-.chart-labels {
-  display: flex;
-  justify-content: space-around;
-  height: 15%;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.chart-label {
-  width: 40px;
-  text-align: center;
-  font-size: 12px;
-}
-</style>
