@@ -192,7 +192,7 @@
                 <div v-for="event in events" :key="event.id" class="col-lg-4 col-md-6 col-sm-12">
                   <q-card class="event-card">
                     <q-img
-                      :src="event.image_url || require('assets/event-default.jpg')"
+                      :src="event.image_url || require('src/assets/event-default.jpg')"
                       spinner-color="primary"
                       style="height: 200px"
                     />
@@ -224,7 +224,7 @@
                 <div v-for="event in events20ha" :key="event.id" class="col-lg-4 col-md-6 col-sm-12">
                   <q-card class="event-card">
                     <q-img
-                      :src="event.image_url || require('assets/event-default.jpg')"
+                      :src="event.image_url || require('src/assets/event-default.jpg')"
                       spinner-color="primary"
                       style="height: 200px"
                     />
@@ -256,7 +256,7 @@
                 <div v-for="event in events5ha" :key="event.id" class="col-lg-4 col-md-6 col-sm-12">
                   <q-card class="event-card">
                     <q-img
-                      :src="event.image_url || require('assets/event-default.jpg')"
+                      :src="event.image_url || require('src/assets/event-default.jpg')"
                       spinner-color="primary"
                       style="height: 200px"
                     />

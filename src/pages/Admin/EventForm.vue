@@ -110,7 +110,7 @@
               <div class="text-center">
                 <div v-if="form.image_url || form.image_file" class="q-mb-md">
                   <q-img
-                    :src="form.image_file ? URL.createObjectURL(form.image_file) : form.image_url"
+                    :src="getImagePreviewUrl()"
                     style="max-height: 200px; max-width: 100%"
                     fit="contain"
                   />
@@ -211,6 +211,17 @@ export default {
       { label: 'Плантация 20 га', value: '20ha' },
       { label: '5 га + коттедж', value: '5ha_cottage' }
     ];
+
+    // Get image preview URL safely (fixes URL.createObjectURL issue)
+    const getImagePreviewUrl = () => {
+      if (form.image_file) {
+        // Use window.URL instead of just URL
+        return window.URL.createObjectURL(form.image_file);
+      } else if (form.image_url) {
+        return form.image_url;
+      }
+      return '';
+    };
 
     // Load event data (for edit mode)
     const loadEvent = async () => {
@@ -344,7 +355,8 @@ export default {
       submitting,
       form,
       categoryOptions,
-      submitForm
+      submitForm,
+      getImagePreviewUrl
     };
   }
 };
