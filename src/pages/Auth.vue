@@ -1,7 +1,7 @@
 <template>
   <div class="auth-container">
     <div class="row justify-center items-center">
-      <div class="col-xs-12 col-sm-8 col-md-6 col-lg-4">
+      <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
         <login-form v-if="!verificationNeeded" />
         <verification-form v-else />
       </div>
@@ -62,4 +62,5 @@ export default {
   position: relative;
   z-index: 1;
 }
+
 </style>
