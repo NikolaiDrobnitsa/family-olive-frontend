@@ -2,18 +2,18 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('src/layouts/MainLayout.vue'),
     children: [
       {
         path: '',
         name: 'home',
-        component: () => import('pages/Index.vue'),
+        component: () => import('src/pages/Index.vue'),
         meta: { requiresAuth: true }
       },
       {
         path: 'questions',
         name: 'survey',
-        component: () => import('pages/Survey.vue'),
+        component: () => import('src/pages/Survey.vue'),
         meta: { requiresAuth: true }
       }
     ]
@@ -21,7 +21,7 @@ const routes = [
   {
     path: '/auth',
     name: 'auth',
-    component: () => import('pages/Auth.vue'),
+    component: () => import('src/pages/Auth.vue'),
     meta: { guest: true }
   },
 
@@ -29,7 +29,7 @@ const routes = [
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/Error404.vue')
+    component: () => import('src/pages/Error404.vue')
   }
 ]
 
