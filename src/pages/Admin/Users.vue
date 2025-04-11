@@ -377,20 +377,40 @@ export default {
     };
 
     // Export users
+    // Export users
     const exportUsers = async () => {
       try {
-        // Prepare export URL with all active filters
-        let exportUrl = '/api/admin/users/export?';
+        // Create querystring from current filters
+        // let queryParams = new URLSearchParams();
+        //
+        // // Add all non-empty filters to the querystring
+        // Object.keys(filters).forEach(key => {
+        //   if (filters[key] !== null && filters[key] !== '') {
+        //     queryParams.append(key, filters[key]);
+        //   }
+        // });
+        //
+        // // Get base URL
+        // const baseUrl = process.env.API_URL || 'http://localhost:8000';
+        // const exportUrl = `${baseUrl}/api/admin/users/export?${queryParams.toString()}`;
+        //
+        // // For direct download approach (recommended)
+        // window.open(exportUrl, '_blank');
 
-        // Add all non-empty filters to the URL
-        Object.keys(filters).forEach(key => {
-          if (filters[key] !== null && filters[key] !== '') {
-            exportUrl += `${key}=${encodeURIComponent(filters[key])}&`;
-          }
+        // Alternative approach using Axios
+        const response = await api.get('/api/admin/users/export', {
+          params: filters,
+          responseType: 'blob' // Important for file download!
         });
 
-        // Open export URL in new window/tab
-        window.open(exportUrl, '_blank');
+        // // Create a download link
+        const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+        const fileLink = document.createElement('a');
+        fileLink.href = fileURL;
+        fileLink.setAttribute('download', 'users.xlsx');
+        document.body.appendChild(fileLink);
+        fileLink.click();
+        document.body.removeChild(fileLink);
       } catch (error) {
         console.error('Error exporting users:', error);
         $q.notify({
